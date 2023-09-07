@@ -6,21 +6,18 @@
 //
 
 import UIKit
-protocol ColorDelegate: AnyObject {
-    func didSelectColor(_ color: UIColor)
-}
-
 
 class SecondVC: UIViewController {
-    weak var delegate: ColorDelegate?
     
-
+    // Делегирование
+    var delegate: ColorUpdateProtocol?
+    // Замыкание
+    var colorClosure: ((UIColor) -> Void)?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         hideKeyboardWhenTappedAround()
         dismissKeyboard()
-        
-        
     }
     
     // RED
@@ -40,7 +37,6 @@ class SecondVC: UIViewController {
     // TEST VIEW
     @IBOutlet var testView: UIView!
     
-    
     // RED ACTION
     @IBAction private func redSliderAction(_ sender: UISlider) {
         let value = Int(sender.value * 255)
@@ -48,6 +44,7 @@ class SecondVC: UIViewController {
         redTF.placeholder = String(value)
         updateTestViewColor()
     }
+
     @IBAction private func redTFAction(_ sender: Any) {
         guard let text = redTF.text,
               let value = Int(text),
@@ -56,7 +53,6 @@ class SecondVC: UIViewController {
         updateTestViewColor()
     }
 
-
     // GREEN ACTION
     @IBAction func greenSliderAction(_ sender: UISlider) {
         let value = Int(sender.value * 255)
@@ -64,6 +60,7 @@ class SecondVC: UIViewController {
         greenTF.placeholder = String(value)
         updateTestViewColor()
     }
+
     @IBAction func greenTFAction(_ sender: Any) {
         guard let text = greenTF.text,
               let value = Int(text),
@@ -91,22 +88,22 @@ class SecondVC: UIViewController {
     // HEX COLOR ACTION
     
     @IBAction func hexColorTFAction(_ sender: Any) {
-            guard let text = hexColorTF.text,
-                  let color = UIColor(hex: text),
-                  let red = color.cgColor.components?[0],
-                  let green = color.cgColor.components?[1],
-                  let blue = color.cgColor.components?[2],
-                  let alpha = color.cgColor.components?[3] else { return }
+        guard let text = hexColorTF.text,
+              let color = UIColor(hex: text),
+              let red = color.cgColor.components?[0],
+              let green = color.cgColor.components?[1],
+              let blue = color.cgColor.components?[2],
+              let alpha = color.cgColor.components?[3] else { return }
         // Обновляем значения слайдеров
-            redSlider.value = Float(red)
-            greenSlider.value = Float(green)
-            blueSlider.value = Float(blue)
-            opacitySlider.value = Float(alpha)
+        redSlider.value = Float(red)
+        greenSlider.value = Float(green)
+        blueSlider.value = Float(blue)
+        opacitySlider.value = Float(alpha)
         // Обновление значений текстовых полей
-            redTF.text = String(Int(red * 255))
-            greenTF.text = String(Int(green * 255))
-            blueTF.text = String(Int(blue * 255))
-            opacityTF.text = String(Int(alpha * 100))
+        redTF.text = String(Int(red * 255))
+        greenTF.text = String(Int(green * 255))
+        blueTF.text = String(Int(blue * 255))
+        opacityTF.text = String(Int(alpha * 100))
         updateTestViewColor()
     }
     
@@ -117,6 +114,7 @@ class SecondVC: UIViewController {
         opacityTF.placeholder = String(value)
         updateTestViewColor()
     }
+
     @IBAction func opacityTFAction(_ sender: Any) {
         guard let text = opacityTF.text,
               let value = Int(text),
@@ -125,14 +123,16 @@ class SecondVC: UIViewController {
         updateTestViewColor()
     }
     
-    
     // BUTTONS
-    @IBAction func doneWithDelegates() { delegate?.didSelectColor(testView.backgroundColor ?? UIColor.white) }
-    @IBAction func doneWithClosure() {}
-    
-    
+    @IBAction func doneWithDelegates() {
+        delegate?.setBackgroundColor(testView.backgroundColor!)
+        navigationController?.popViewController(animated: true)
+    }
 
-    
+    @IBAction func doneWithClosure() {
+        colorClosure?(testView.backgroundColor ?? .clear)
+        navigationController?.popToRootViewController(animated: true)
+    }
     
     // Обновление цвета testView и значения HEX COLOR
     func updateTestViewColor() {
